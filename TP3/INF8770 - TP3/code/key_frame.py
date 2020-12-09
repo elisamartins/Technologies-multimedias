@@ -3,11 +3,15 @@ import cv2
 import math
 import csv
 from matplotlib import pyplot as plt 
-from histograms import get_edge_histogram, get_euclidean_distance
+from histograms import get_edge_histogram, get_euclidean_distance, get_image_DC
+from scipy.fftpack import dct
+from skimage import io, util
 
-THRESHOLD = 10000
+
+
+THRESHOLD = 50
 VIDEO_FPS = 29.97
-SEUIL = 7000
+SEUIL = 100000
 
 class Frame:
   def __init__(self, time, hist):
@@ -62,9 +66,9 @@ def get_key_frames(video_number):
       
       if ret == True:
         #h = get_color_histogram(frame)
-        frame =  cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        h = get_edge_histogram(frame)
         frame_number += 1
+        frame =  cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        h = get_edge_histogram(get_image_DC(frame))
         groups = update_groups(Frame(frame_number/VIDEO_FPS, h), groups)
 
       else:
@@ -114,6 +118,7 @@ def get_video(image):
        video_number = "v" + str(row[0]).zfill(2)
        time = row[1]
   
+  print(video_number)
   return video_number, time, smallest_dist
 
 def get_solution(ext):
@@ -121,10 +126,11 @@ def get_solution(ext):
   f_writer.writerow(["image", "video", "minutage"])
   f_writer = csv.writer(open('../data/q3_solution_' + ext + '.csv', 'a', newline=''))
   for i in range(1, 201):
-    result = get_video(cv2.imread('../data/' + ext + '/i' + str(i).zfill(3) + '.' + ext, cv2.IMREAD_GRAYSCALE))
+    img = (cv2.imread('../data/' + ext + '/i' + str(i).zfill(3) + '.' + ext, cv2.IMREAD_GRAYSCALE))
+    result = get_video(get_image_DC(img))
     f_writer.writerow(["i"+ str(i).zfill(3), result[0], result[1], result[2]])
 
-#generate_indexation_files()
+generate_indexation_files()
 #get_solution()
 # image_name = '../../data/png/i010.png'
 
@@ -139,3 +145,69 @@ def get_solution(ext):
 # print("Edge histogram:")
 # print(edge_hist[1])
 # print(len(edge_hist[1]))
+# f25 = []
+# cap = cv2.VideoCapture('../data/video/v25' + '.mp4')
+# frame_number = 0
+# while (cap.isOpened()):
+#     ret, frame = cap.read()
+      
+#     if ret == True:
+#       frame_number += 1
+#       if(frame_number == 16):
+#         frame =  cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+#         yy= get_image_DC(frame)
+#         plt.gcf().canvas.set_window_title('video')
+#         # plt.imshow(yy)
+#         # plt.show()
+
+#         print("video")
+#         h = get_edge_histogram(yy)
+#         f25 = h
+#         break
+
+#     else:
+#           break
+
+# cap.release()
+# cv2.destroyAllWindows()
+
+# f22 = []
+# cap = cv2.VideoCapture('../data/video/v22' + '.mp4')
+# frame_number = 0
+# while (cap.isOpened()):
+#     ret, frame = cap.read()
+      
+#     if ret == True:
+#       frame_number += 1
+#       if(frame_number == 16):
+#         frame =  cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+#         yy= get_image_DC(frame)
+#         plt.gcf().canvas.set_window_title('video')
+#         # plt.imshow(yy)
+#         # plt.show()
+
+#         print("video")
+#         h = get_edge_histogram(yy)
+#         f22 = h
+#         break
+
+#     else:
+#           break
+
+# cap.release()
+# cv2.destroyAllWindows()
+# #img = io.imread('../data/jpeg/i001.jpeg', as_gray=True)*255
+# img = (cv2.imread('../data/jpeg/i003.jpeg', cv2.IMREAD_GRAYSCALE))
+# plt.gcf().canvas.set_window_title('jpeg image')
+# img = get_image_DC(img)
+# print("image")
+# h = get_edge_histogram(img)
+
+
+
+# print("eucl 25")
+# print(get_euclidean_distance(f25, h))
+
+
+# print("eucl 22")
+# print(get_euclidean_distance(f22, h))
